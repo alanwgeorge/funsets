@@ -77,6 +77,10 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val range1to10 = rangeInclusiveSet(1, 10)
+    val range5to15 = rangeInclusiveSet(5, 15)
+    val even: Set = _ % 2 == 0
+    val odd: Set = !even(_)
   }
 
   /**
@@ -86,7 +90,7 @@ class FunSetSuite extends FunSuite {
    * Once you finish your implementation of "singletonSet", exchange the
    * function "ignore" by "test".
    */
-  ignore("singletonSet(1) contains 1") {
+  test("singletonSet(1) contains 1") {
     
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -101,12 +105,115 @@ class FunSetSuite extends FunSuite {
     }
   }
 
-  ignore("union contains all elements") {
+  test("rangeInclusiveSet()") {
     new TestSets {
-      val s = union(s1, s2)
-      assert(contains(s, 1), "Union 1")
-      assert(contains(s, 2), "Union 2")
-      assert(!contains(s, 3), "Union 3")
+      assert(contains(range1to10, 5), "range1to10 conatians 5")
+      assert(contains(range1to10, 1), "range1to10 conatians 1")
+      assert(contains(range1to10, 10), "range1to10 conatians 10")
+      assert(!contains(rangeInclusiveSet(10, 1), 5), "impossible range 5")
+      assert(!contains(rangeInclusiveSet(10, 1), 10), "impossible range 10")
+      assert(!contains(rangeInclusiveSet(10, 1), 1), "impossible range 1")
+    }
+  }
+
+  test("even and odd") {
+    new TestSets {
+      assert(!contains(even, 1), "Union 4")
+      assert(contains(even, 2), "Union 5")
+      assert(contains(odd, 1), "Union 6")
+      assert(!contains(odd, 2), "Union 7")
+    }
+  }
+
+  test("union contains all elements") {
+    new TestSets {
+      val union1 = union(s1, s2)
+      assert(contains(union1, 1), "Union 1")
+      assert(contains(union1, 2), "Union 2")
+      assert(!contains(union1, 3), "Union 3")
+
+      val union2 = union(even, odd)
+      assert(contains(union2, 1), "Union 4")
+      assert(contains(union2, 2), "Union 5")
+    }
+  }
+
+  test("intersect contains elements in both sets") {
+    new TestSets {
+      val intersection1 = intersect(range1to10, range5to15)
+      assert(contains(intersection1, 8), "Intersect 8")
+      assert(contains(intersection1, 10), "Intersect 10")
+      assert(contains(intersection1, 5), "Intersect 5")
+      assert(!contains(intersection1, 1), "Intersect 1")
+      assert(!contains(intersection1, 15), "Intersect 15")
+      assert(!contains(intersection1, 4), "Intersect 4")
+      assert(!contains(intersection1, 14), "Intersect 14")
+
+      val intersection2 = intersect(even, odd)
+      assert(!contains(intersection2, 1), "Intersect Odd")
+      assert(!contains(intersection2, 2), "Intersect Even")
+
+    }
+  }
+
+  test("diff contains all elements in first set that are not in second") {
+    new TestSets {
+      val difference1 = diff(range1to10, range5to15)
+      assert(contains(difference1, 1), "diff 1")
+      assert(contains(difference1, 4), "diff 4")
+      assert(!contains(difference1, 5), "diff 5")
+      assert(!contains(difference1, 15), "diff 15")
+
+      val difference2 = diff(range1to10, even)
+      assert(contains(difference2, 1), "diff even 1")
+      assert(!contains(difference2, 20), "diff even 20")
+      assert(!contains(difference2, 4), "diff even 4")
+    }
+  }
+
+  test("filter contains all elements in first set that are in second") {
+    new TestSets {
+      val filterSet1 = filter(range1to10, range5to15)
+      assert(!contains(filterSet1, 1), "filter 1")
+      assert(!contains(filterSet1, 4), "filter 4")
+      assert(contains(filterSet1, 5), "filter 5")
+      assert(!contains(filterSet1, 15), "filter 15")
+
+      val filterSet2 = filter(range1to10, even)
+      assert(!contains(filterSet2, 1), "filter even 1")
+      assert(!contains(filterSet2, 20), "filter even 20")
+      assert(contains(filterSet2, 4), "filter even 4")
+
+      val filterSet3 = filter(filter(odd, _ > 0), _ < 5)
+      assert(contains(filterSet3, 3))
+      assert(!contains(filterSet3, 5))
+    }
+  }
+
+  test("forAll applies Int => Boolean to whole set") {
+    new TestSets {
+      assert(forall(range1to10, _ > 0), "forall 1")
+      assert(!forall(range1to10, _ != 5), "forall 2")
+      assert(!forall(range1to10, even), "forall 3")
+      assert(!forall(range1to10, odd), "forall 4")
+      assert(forall(intersect(range1to10, even), even), "forall 5")
+    }
+  }
+
+  test("exist: tests a set for one element that satisfies the predicate") {
+    new TestSets {
+      assert(exists(range1to10, _ == 5), "exists 1")
+      assert(exists(range1to10, _ < 5), "exists 2")
+      assert(!exists(even, _ == 5), "exists 3")
+      assert(!exists(even, odd), "exists 4")
+      assert(exists(range1to10, even), "exists 5")
+    }
+  }
+
+  test("map: works!") {
+    new TestSets {
+      assert(forall(map(even, _ - 1), odd), "map 1")
+      assert(exists(map(range1to10, _ * 10), _ % 10 == 0), "map 1")
     }
   }
 }
